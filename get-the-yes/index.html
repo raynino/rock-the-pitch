@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Rock the Pitch: Get the Yes</title>
+<style>
+  :root { --ink:#111; --muted:#4a4a4a; --blue:#1E4C90; --ice:#E0F6FF; --pale:#F4FAFE; --red:#E82819; --white:#fff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: #eef3f8; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+  header.bar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 20px; background:linear-gradient(90deg,#3F87E6 0%,#1E4C90 55%,#0B112F 100%); color:white; }
+  header .brand { font-size:12px; letter-spacing:.14em; font-weight:700; }
+  header .meta { color:#E0F6FF; font-size:13px; }
+  .controls { display:flex; gap:8px; align-items:center; }
+  button { background:transparent; color:white; border:1px solid rgba(255,255,255,.45); padding:7px 12px; border-radius:6px; cursor:pointer; font-family:Arial, sans-serif; }
+  button.primary { background:var(--red); border-color:var(--red); font-weight:700; }
+  #stage { margin:16px 18px 0; min-height:360px; background:white; border-radius:12px; overflow:auto; cursor:pointer; box-shadow:0 10px 28px rgba(11,17,47,.12); }
+  .slide { padding:36px 48px 28px; }
+  .field { background:linear-gradient(115deg,#3F87E6 0%,#1E4C90 48%,#0B112F 100%); color:white; min-height:380px; border-radius:12px; }
+  .kicker { color:var(--blue); font-size:12px; letter-spacing:.14em; font-weight:700; margin-bottom:8px; }
+  .field .kicker { color:var(--ice); }
+  h1 { font-size:36px; line-height:1.15; margin:0 0 16px; font-weight:700; }
+  .field h1 { font-size:42px; }
+  .sub { font-size:22px; color:var(--ice); margin-bottom:12px; }
+  .rule { width:64px; height:4px; background:var(--red); margin:14px 0; }
+  .board { background:var(--pale); border-radius:10px; padding:14px 16px; margin:10px 0; }
+  .board .num { color:var(--blue); font-weight:700; margin-right:10px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid.four { grid-template-columns:repeat(4,1fr); }
+  .card { background:var(--pale); border-radius:10px; padding:16px; border-left:4px solid var(--blue); }
+  .card .who { font-size:20px; font-weight:700; }
+  .card .role { color:var(--blue); font-size:14px; margin:4px 0 8px; }
+  .card p { margin:0; color:var(--ink); line-height:1.4; }
+  .weak { border-left-color:var(--red); }
+  .tag { font-size:11px; letter-spacing:.1em; font-weight:700; }
+  .tag.bad { color:var(--red); }
+  .tag.good { color:var(--blue); }
+  .progress { height:4px; background:#d5e3f2; margin:12px 18px 0; }
+  .progress > div { height:4px; background:linear-gradient(90deg,#3F87E6,#0B112F); }
+  #notes { margin:10px 18px 16px; background:white; border:1px solid #d5e3f2; border-radius:10px; }
+  #notes summary { cursor:pointer; padding:10px 16px; color:var(--blue); font-weight:700; letter-spacing:.06em; font-size:13px; }
+  .study { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; padding:0 16px 8px; }
+  .study article { background:var(--pale); border-radius:8px; padding:12px 14px; }
+  .study h2 { margin:0 0 6px; font-size:11px; letter-spacing:.1em; color:var(--blue); }
+  .study p { margin:0; color:var(--ink); font-size:14px; line-height:1.45; }
+  .run { margin:0 16px 14px; padding:10px 12px; background:#f7f8fa; border-radius:8px; color:var(--muted); font-size:14px; line-height:1.45; }
+  .run strong { color:var(--ink); }
+  .hint { color:#5d6e82; font-size:12px; padding:0 18px 8px; }
+  @media (max-width:900px) {
+    .grid, .grid.four, .study { grid-template-columns:1fr; }
+    .slide { padding:22px 18px; }
+    h1, .field h1 { font-size:30px; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div>
+    <div class="brand">ROCK THE PITCH</div>
+    <div class="meta" id="sectionLabel">Get the Yes · Recap and Shift · 3 min</div>
+  </div>
+  <div class="controls">
+    <button id="prev" type="button">Back</button>
+    <button id="next" class="primary" type="button">Next</button>
+    <span class="meta" id="count">01 / 20</span>
+  </div>
+</header>
+<div class="progress"><div id="bar"></div></div>
+<main>
+  <div id="stage" title="Click to advance"></div>
+  <p class="hint">Click the slide or press the right arrow. Left arrow goes back. N toggles the study notes.</p>
+  <details id="notes" open>
+    <summary>STUDY THIS SLIDE</summary>
+    <div class="study" id="study"></div>
+    <p class="run" id="run"></p>
+  </details>
+</main>
+<script>
+const slides = [
+  { section:"Recap and Shift · 3 min", field:true,
+    html:`<div class="kicker">PATRIOT BOOT CAMP ALUMNI · 60 MINUTES</div><h1>Rock the Pitch</h1><div class="sub">Get the Yes</div><div class="rule"></div><p>Veteran and military spouse entrepreneurs<br>The decision-maker is already in the room.</p>`,
+    teach:"The frame for the hour. Last session was about getting the meeting. This session is about earning the yes once the decision-maker is already in the room.",
+    why:"If you do not reset the frame, alumni will pitch the closed meeting the same way they pitched the open room. Attention is no longer the prize. The yes is.",
+    example:"A founder crushed the open-room pitch at a Patriot Boot Camp, got the intro, then opened the real meeting with 'let me tell you about our platform.' The buyer checked out in twenty seconds. Today is the fix for that meeting.",
+    run:"Opening script: last session got you the meeting. You are here because it worked. Today the decision-maker is already in the room. We are not working on getting attention. We are working on keeping it. That is why we start with the reverse pitch." },
+  { section:"Recap and Shift · 3 min",
+    html:`<div class="kicker">RECAP · 3 MIN</div><h1>The Big Audience</h1><div class="board"><span class="num">01</span><strong>The room.</strong> The open room, the investor event, the stranger.</div><div class="board"><span class="num">02</span><strong>The goal.</strong> Get the meeting.</div><div class="board"><span class="num">03</span><strong>The proof.</strong> You've done that. You're here because it worked.</div>`,
+    teach:"A three-beat recap. The room was the open event. The goal was the meeting, not the check. The proof is that they are sitting here.",
+    why:"They need the win named before you raise the bar. Confidence first, then the harder game. Do not over-explain. One beat, then move.",
+    example:"The stranger at a DAV event who heard a thirty-second pitch and said, 'I know a procurement officer who needs this.' That intro was the win. Today is what happens after that intro lands.",
+    run:"Key line: 'You've done that. You're here because it worked.' One beat, then move." },
+  { section:"Recap and Shift · 3 min", field:true,
+    html:`<div class="kicker">RECAP AND SHIFT</div><h1>Today is a different game.</h1><p>The decision-maker is already in the room.</p><p>They're deciding whether to say yes.</p><p>New goal: keep their attention and earn the yes.</p>`,
+    teach:"The shift. The decision-maker is already seated. They are deciding yes or no. The new job is to keep their attention and earn the yes.",
+    why:"Getting attention and keeping it are different skills. A pitch that works on a stranger in a loud room will fail on a buyer who already has a calendar hold and a reason to leave.",
+    example:"A bank committee member already has the package. They are not hunting for a story. They are hunting for a reason to say yes or a clean reason to kill it. The opening has to serve that decision.",
+    run:"Key line: 'We're not working on getting attention anymore — we're working on keeping it.' Then: that is why we start with the reverse pitch." },
+  { section:"Reverse Pitch · 10 min", field:true,
+    html:`<div class="kicker">REVERSE PITCH · 10 MIN</div><h1>The one question</h1><p style="font-size:28px">Why should this person care about what you're selling?</p><div class="rule"></div><p>They decide fast. Your job is not to impress them. Answer their question before they ask it.</p>`,
+    teach:"The reverse pitch. Before a word about the business, answer why this specific person should care.",
+    why:"Investors and buyers decide fast. If you do not answer their question first, they answer it themselves, usually with no. Impressing them is not the job.",
+    example:"An angel who has heard a hundred pitches this year. The ones that survive do not open with the product. They open with the problem he already has, the cost of ignoring it, and why this one is different from the ninety-nine vague ones.",
+    run:"Pose the question. Let it sit. Do not answer it. The exercise will." },
+  { section:"Reverse Pitch · 10 min",
+    html:`<div class="kicker">REVERSE PITCH · EXERCISE</div><h1>Reverse Pitch</h1><div class="board"><span class="num">1</span>You'll get a card describing a real decision-maker.</div><div class="board"><span class="num">2</span>Write the 3 things THEY need to hear before they'll even consider saying yes.</div><div class="board"><span class="num">3</span>Not your pitch. Their needs.</div>`,
+    teach:"They get a decision-maker card and write the three things that person needs to hear before they will even consider yes.",
+    why:"Most founders write their own pitch in disguise. If it sounds like the website, it is wrong. The rule is the point.",
+    example:"A B2B founder writes 'our software is intuitive.' That is their pitch. Dana needs to hear 'you have been burned by a vendor who left your team stranded, and here is the proof this one will not.'",
+    run:"Emphasize: write THEIR needs, not your pitch." },
+  { section:"Reverse Pitch · 10 min",
+    html:`<div class="kicker">REVERSE PITCH · HAND THESE OUT</div><h1>The Cards</h1><div class="grid four"><div class="card"><div class="who">Dana</div><div class="role">Procurement Officer</div><p>Burned by overpromising vendors. Needs proof.</p></div><div class="card"><div class="who">Marcus</div><div class="role">Angel Investor</div><p>Heard 100 vague pitches. Needs why this, why now, what if it fails.</p></div><div class="card"><div class="who">Priya</div><div class="role">Bank Loan Committee</div><p>Collateral and cash flow. The story does not matter.</p></div><div class="card"><div class="who">Tom</div><div class="role">Corporate Innovation Lead</div><p>Has budget. Boss kills risk. Needs a small safe yes.</p></div></div>`,
+    teach:"Four real decision-makers. Dana buys software and has been burned. Marcus writes checks up to $100K and is tired of vague pitches. Priya approves a $50K line and only cares about collateral and cash flow. Tom has budget and a boss who kills risk.",
+    why:"One pitch does not fit every room. The card forces them to pitch a person, not an audience.",
+    example:"Assign on purpose when you can. A founder selling into companies gets Tom or Dana. A founder raising gets Marcus. Someone chasing a line of credit gets Priya. If you do not know the room, let them draw and duplicate cards past four pairs.",
+    run:"Hand the cards out before the writing clock starts. Assign if you know the businesses. Otherwise draw." },
+  { section:"Reverse Pitch · 10 min",
+    html:`<div class="kicker">REVERSE PITCH · RUN OF SHOW</div><h1>The Rules</h1><div class="board"><span class="num">5 min</span>Write your 3 things. Silent.</div><div class="board"><span class="num">2 min</span>Pitch to your partner playing that decision-maker.</div><div class="board"><span class="num">1 Q</span>They respond with ONE skeptical question.</div><div class="board"><span class="num">Swap</span>Roles reverse. Cut this if you run long, not the debrief.</div>`,
+    teach:"Five silent minutes to write. Two minutes to pitch the partner, who is playing the card. One skeptical question. Then swap.",
+    why:"Polite nodding teaches nothing. The one question is the gift. Protect the debrief even if you have to cut the second swap.",
+    example:"If the room goes soft, model it. 'If I were Dana, I would ask what happens when your software breaks at 2 AM.' That is the standard for a real skeptical question.",
+    run:"Enforce the one-question rule. If writing runs long, cut the second role-swap, not the debrief." },
+  { section:"Reverse Pitch · 10 min",
+    html:`<div class="kicker">REVERSE PITCH · DEBRIEF</div><h1>Debrief</h1><div class="board">Which pressure point was hardest to answer — and why?</div><div class="board">The answer was never “my product is great.” It was: here’s the problem you already have, and here’s what it costs you to ignore it.</div>`,
+    teach:"Which pressure point was hardest, and why. Then the line: the answer was never 'my product is great.'",
+    why:"This is where the reframe sticks. If you skip the debrief to save time, the exercise was just a writing drill.",
+    example:"A pair gets real pushback on cash flow. They realize their three lines were still a product description. You close on the line: here is the problem you already have, and here is what it costs you to ignore it.",
+    run:"Take two or three answers out loud. Success check: they wrote the decision-maker's needs, at least one pair got real pushback, and the room landed on their problem, not the product." },
+  { section:"Rebuild the Pitch · 20 min",
+    html:`<div class="kicker">REBUILD THE PITCH · 20 MIN</div><h1>Rebuilding the Pitch</h1><div class="grid"><div class="card weak"><div class="tag bad">OLD</div><p>Problem, solution, product, ask.</p></div><div class="card"><div class="tag good">NEW</div><p>Their pressure point, cost of ignoring it, your solution, proof, ask.</p></div></div><div class="board">The pressure point becomes your opening line.</div>`,
+    teach:"The new structure. Old was problem, solution, product, ask. New is their pressure point, the cost of ignoring it, your solution, proof, then the ask.",
+    why:"The pressure point is the opening line. A decision-maker who hears their problem named in the first ten seconds will stay for the rest.",
+    example:"Old opening: 'We built a project management tool for teams.' New opening: 'You have been burned by vendors who overpromised and left your team stranded.' Same company. The second one keeps Dana in the room.",
+    run:"Key line: 'The pressure point becomes your opening line.'" },
+  { section:"Rebuild the Pitch · 20 min",
+    html:`<div class="kicker">REBUILD THE PITCH · WORKED EXAMPLE</div><h1>The Dana Example</h1><div class="card weak"><div class="tag bad">OLD</div><p>“We built a project management tool for teams.”</p></div><div class="card"><div class="tag good">NEW</div><p>“You’ve been burned by vendors who overpromised and left your team stranded. Every failed rollout costs you three months of productivity. Our tool has been live at two companies for a year with zero downtime. Here’s what a 30-day pilot looks like.”</p></div>`,
+    teach:"A worked example of the new structure, using Dana. Fear first. Cost second. Proof third. A next step she can say yes to.",
+    why:"Naming the fear before the buyer can raise it is what separates a pitch from a product description. It also makes the later questions easier, because the risk is already on the table.",
+    example:"Read both lines out loud. Ask the room which one Dana stays for. The new line names her fear, prices the cost, offers proof, and ends on a pilot.",
+    run:"Point out: she names Dana's fear before Dana can raise it." },
+  { section:"Rebuild the Pitch · 20 min",
+    html:`<div class="kicker">REBUILD THE PITCH · EXERCISE</div><h1>Rebuild Exercise</h1><div class="board"><span class="num">1</span>Pick the card closest to your real audience, or the one that scared you most.</div><div class="board"><span class="num">2</span>Write one sentence: the cost of ignoring their pressure point.</div><div class="board"><span class="num">3</span>Rewrite your pitch opening. That sentence is the first line.</div><div class="board"><span class="num">4</span>Deliver to a partner. Did it land?</div>`,
+    teach:"They pick a card, write the cost of ignoring the pressure point, make that sentence the first line, and deliver it.",
+    why:"This is the longest block because it is the skill. Tough questions and the ask only work if the opening named the problem.",
+    example:"A founder's new opening still sounds like a product tour. You ask, 'What does Dana lose if she does nothing?' They answer, 'Three months and a team that will not trust the next rollout.' That sentence becomes line one.",
+    run:"If the opening still sounds like a product description, ask what Dana loses if she does nothing. That answer is the pitch." },
+  { section:"Tough Questions · 15 min", field:true,
+    html:`<div class="kicker">TOUGH QUESTIONS · 15 MIN</div><h1>Not perfect answers.</h1><p style="font-size:24px">Stay calm. Redirect to their problem.</p><div class="rule"></div><p>A decision-maker whose problem was named in the first ten seconds is far more forgiving when the numbers get shaky.</p>`,
+    teach:"The principle for hard questions. Not perfect answers. Stay calm. Redirect to their problem.",
+    why:"A buyer whose problem was named in the first ten seconds will forgive a shaky number. A buyer who never heard their problem will not.",
+    example:"Someone gets asked for burn rate and freezes, then invents a round number. Better: 'We burn $18K a month. That is less than what one failed vendor rollout costs your team in a quarter.'",
+    run:"Key line: this is not about perfect answers. It is about staying calm and redirecting back to their problem." },
+  { section:"Tough Questions · 15 min",
+    html:`<div class="kicker">TOUGH QUESTIONS</div><h1>Three Question Types</h1><div class="board"><strong>The skeptic.</strong> “What if it doesn’t work?” Proof, not promises. Name the risk yourself.</div><div class="board"><strong>The numbers person.</strong> “What’s your burn rate?” Give the real number, then tie it to the cost of their problem.</div><div class="board"><strong>The vision question.</strong> “Where in five years?” Keep it short, then pivot to this quarter.</div>`,
+    teach:"Three types. The skeptic wants proof. The numbers person wants the real number tied to their cost. The vision question gets a short answer, then a pivot to this quarter.",
+    why:"They do not need a script for every question. They need to recognize the type and redirect.",
+    example:"Skeptic: two companies, a year, zero downtime, and you owe us nothing if the pilot fails. Numbers: give the burn, then the cost of their problem. Vision: five years only matters if we solve the rollout this quarter.",
+    run:"Give one example of each. Do not over-explain." },
+  { section:"Tough Questions · 15 min",
+    html:`<div class="kicker">TOUGH QUESTIONS · EXERCISE</div><h1>Tough Questions Exercise</h1><div class="board"><span class="num">1</span>Write down the ONE question you fear most.</div><div class="board"><span class="num">2</span>Partner asks it.</div><div class="board"><span class="num">3</span>Answer: acknowledge, one concrete fact, redirect to their pressure point.</div><div class="board"><span class="num">4</span>Swap roles.</div>`,
+    teach:"They write the one question they fear. The partner asks it with no softening. The answer is acknowledge, one concrete fact, redirect to the pressure point.",
+    why:"The goal is not to win the argument. It is to keep the room. Defensive answers sound like fear.",
+    example:"A founder gets 'what if you miss payroll?' and starts explaining the cap table. Restart: 'Fair question. We have four months of runway. That is why the pilot is thirty days and you owe us nothing if it fails.'",
+    run:"If an answer sounds defensive, ask whether Dana would hear confidence or fear. Then transition: now the only thing left is to make it easy to say yes." },
+  { section:"The Ask · 10 min", field:true,
+    html:`<div class="kicker">THE ASK · 10 MIN</div><h1>Make it easy to say yes.</h1><p>You've named their problem. You've survived their questions.</p><div class="rule"></div><p>A vague ask kills a good pitch. A specific ask closes it.</p>`,
+    teach:"The ask. They have named the problem and survived the questions. The only job left is to make yes easy.",
+    why:"A vague ask throws away the work. A specific ask is something a person can actually agree to.",
+    example:"'We are looking for funding to grow' is not an ask. '$250K for a 12-month runway, decision by Friday, and yes gets a monthly dashboard and an advisory seat' is an ask.",
+    run:"Key line: a vague ask kills a good pitch. A specific ask closes it." },
+  { section:"The Ask · 10 min",
+    html:`<div class="kicker">THE ASK</div><h1>Three Elements of a Strong Ask</h1><div class="board"><span class="num">01</span><strong>The number.</strong> Exactly what you want.</div><div class="board"><span class="num">02</span><strong>The timeline.</strong> When you need it.</div><div class="board"><span class="num">03</span><strong>The next step.</strong> What happens after they say yes.</div>`,
+    teach:"Three elements. The number is exactly what you want. The timeline is when you need it. The next step is what happens after yes.",
+    why:"Yes has to be a door, not a cliff. If they cannot see the next step, they will not step through.",
+    example:"Tom's version: a 30-day pilot with one team of ten, starting next month. If it works, expand. If it does not, you owe us nothing. Number, date, and a safe next step his boss can live with.",
+    run:"Three things. Number, timeline, next step." },
+  { section:"The Ask · 10 min",
+    html:`<div class="kicker">THE ASK · SIDE BY SIDE</div><h1>Ask Examples</h1><div class="grid"><div class="card weak"><div class="tag bad">WEAK</div><p>“We’re looking for funding to grow.”</p></div><div class="card"><div class="tag good">STRONG</div><p>“We’re raising $250K for a 12-month runway. Decision by Friday. Yes gets a monthly dashboard and a seat on the advisory board.”</p></div><div class="card weak"><div class="tag bad">WEAK</div><p>“We’d love to work with your company.”</p></div><div class="card"><div class="tag good">STRONG</div><p>“30-day pilot with one team of ten. Starts next month. Works, we expand. Doesn’t, you owe us nothing.”</p></div></div>`,
+    teach:"Two pairs. Weak asks are wishes. Strong asks have a number, a date, and a next step.",
+    why:"Specific enough to say yes to is the test. If a partner cannot picture saying yes, it is still vague.",
+    example:"Read the weak line, then the strong line, for both pairs. Ask which one a person can agree to on a Friday afternoon. The answer is always the specific one.",
+    run:"Point out the difference. The strong versions are specific enough to say yes to." },
+  { section:"The Ask · 10 min",
+    html:`<div class="kicker">THE ASK · EXERCISE</div><h1>Ask Exercise</h1><div class="board"><span class="num">1</span>Write your ask in one sentence: number, timeline, next step.</div><div class="board"><span class="num">2</span>Deliver it out loud to a partner.</div><div class="board"><span class="num">3</span>Partner rates: is it specific enough to say yes to?</div><div class="board"><span class="num">4</span>If vague, rewrite it on the spot.</div>`,
+    teach:"They write the ask in one sentence, deliver it, and the partner rates whether it is specific enough to say yes to. Vague gets rewritten on the spot.",
+    why:"If they cannot name the number, the ask is not real yet. The $50K question pulls the real one out.",
+    example:"Someone says 'we are looking for support to scale.' You ask what they would do with $50K in the next 90 days. They say hire one implementer and run two pilots. That is the ask.",
+    run:"If someone cannot name the number, ask what they would do with $50K in the next 90 days." },
+  { section:"Close · 3 min", field:true,
+    html:`<div class="kicker">CLOSE · 3 MIN</div><h1>That’s the whole game.</h1><p>You walked in knowing how to brief a room. Today you learned to brief it for business.</p><div class="rule"></div><p>Name their problem. Survive their questions. Make the ask easy.</p>`,
+    teach:"The close. They already knew how to brief a room. Today they learned to brief it for business.",
+    why:"Three moves, in order. Name their problem. Survive their questions. Make the ask easy. That is the whole game.",
+    example:"A veteran who could brief a commander walked into a buyer meeting and opened with a product tour. Same skill, wrong target. The close names the transfer.",
+    run:"Closing line: you walked in knowing how to brief a room. Today you learned to brief it for business. Name their problem, survive their questions, make the ask easy. That is the whole game." },
+  { section:"Close · 3 min", field:true,
+    html:`<div class="kicker">HAND THIS OUT</div><h1>Takeaway</h1><p>1. Their pressure point is your opening line.</p><p>2. The cost of ignoring it is your proof.</p><p>3. One skeptical question is a gift, not an attack.</p><p>4. A specific ask is the only ask that closes.</p>`,
+    teach:"Four lines on a card. Pressure point is the opening. Cost of ignoring it is the proof. One skeptical question is a gift. A specific ask is the only ask that closes.",
+    why:"They will not remember the hour. They will remember the card if you put it in their hand.",
+    example:"Hand the card while you say the optional line: that reframe, their problem not your product, is the thread through everything today. Then stop. Do not add a second close.",
+    run:"Hand out the takeaway card. Optional final line: their problem, not your product, is the thread. Go get 'em." }
+];
+let i = 0;
+const stage = document.getElementById("stage");
+const study = document.getElementById("study");
+const run = document.getElementById("run");
+const count = document.getElementById("count");
+const sectionLabel = document.getElementById("sectionLabel");
+const bar = document.getElementById("bar");
+const notes = document.getElementById("notes");
+function render() {
+  const s = slides[i];
+  stage.innerHTML = `<div class="slide${s.field ? " field" : ""}">${s.html}</div>`;
+  study.innerHTML = `<article><h2>WHAT YOU'RE TEACHING</h2><p>${s.teach}</p></article><article><h2>WHY IT MATTERS</h2><p>${s.why}</p></article><article><h2>REAL-LIFE EXAMPLE</h2><p>${s.example}</p></article>`;
+  run.innerHTML = `<strong>Run it. </strong>${s.run}`;
+  count.textContent = String(i + 1).padStart(2, "0") + " / 20";
+  sectionLabel.textContent = s.section;
+  bar.style.width = ((i + 1) / slides.length * 100) + "%";
+  stage.scrollTop = 0;
+}
+function next() { if (i < slides.length - 1) { i++; render(); } }
+function prev() { if (i > 0) { i--; render(); } }
+document.getElementById("next").onclick = (e) => { e.stopPropagation(); next(); };
+document.getElementById("prev").onclick = (e) => { e.stopPropagation(); prev(); };
+stage.addEventListener("click", () => next());
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") { e.preventDefault(); next(); }
+  else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); prev(); }
+  else if (e.key === "Home") { i = 0; render(); }
+  else if (e.key === "End") { i = slides.length - 1; render(); }
+  else if (e.key === "n" || e.key === "N") notes.open = !notes.open;
+});
+render();
+</script>
+</body>
+</html>
